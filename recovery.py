@@ -8,60 +8,48 @@ from pprint import pprint
 con = sqlite3.connect("userinfo.db")
 cur = con.cursor()
 
-#cur.execute("CREATE TABLE det(id,username,password,email)")
+#cur.execute("CREATE TABLE TBL_details(id,username,password,email)")
 
-"""
+rows = [
         (1, 'aamir', 'qwerty123', 'hzdkv@example.com'),
         (2, 'kaizar', 'pass1', 'asd@example.com'),
         (3, 'ammar', 'something', 'aeh@example.com'),
         (4, 'amin', 'random', 'auwhg@example.com')
-"""
+]
 
+#cur.executemany("INSERT INTO TBL_details VALUES(?,?,?,?)", rows)
+#con.commit()
 
-
-def user_pos(user):
-    res = cur.execute("SELECT username FROM det")
-    usertup = res.fetchall()
-
-    for i,use in enumerate(usertup):
-        if convertTuple(usertup[i]) == user:
-            return i
-    return -1
+def user_exist(email):
+    user = cur.execute("SELECT * FROM TBL_details WHERE email =?", (email,))
+    if user.fetchone() is not None:
+        return True
+    else:
+        return False
     
-def code_gen(user):
-    if user_pos(user) == -1:
+def code_gen(email):
+    if user_exist(email) == False:
         print("user not found")
-        exit() 
+        exit()
     code = token_urlsafe(32)
     return code
     
-def code_checker(user,code,user_inp):#compares the codes to a user inputed code
+def code_checker(email,code,user_inp):#compares the codes to a user inputed code
     if code != user_inp:
         return False
     else:
-        return pass_changer(user)
+        return pass_changer(email)
     
-def pass_changer(user):
-    pos = user_pos(user)
+def pass_changer(email):
     password = getpass("enter your password")
     while not pass_req(password):
         print("you did not meet req")
         password = getpass("enter your password")
     password = str(hash(password))
-    q = "UPDATE det SET password = "+"'"+password+"'"+" WHERE username = "+"'"+user+"'"
-    cur.execute(q) 
+    cur.execute("UPDATE TBL_details SET password =? WHERE email =?", (password,email))
     con.commit()
     print("password changed")
     
-
-def convertTuple(tup):
-        # initialize an empty string
-    str = ''
-    for item in tup:
-        str = str + item
-    return str
-
-
 def hash(password):
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
@@ -72,18 +60,18 @@ def pass_req(password):# the password requrements(kept it empty for abstraction 
 
 
 def get_det():
-    cur.execute("SELECT * FROM det")
+    cur.execute("SELECT * FROM TBL_details")
     return cur.fetchall()
 
 initial = get_det()
 
 
-us = "amin"
-code = code_gen(us) # currently manually inputing the code will do an email thing later
+em = 'auwhg@example.com'
+code = code_gen(em) # currently manually inputing the code will do an email thing later
 
 u_i = code # need to inject the parameter here from the online form U_i stands for user input
 
-code_checker(us,code,u_i)
+code_checker(em,code,u_i)
 
 
 
@@ -92,5 +80,5 @@ code_checker(us,code,u_i)
 final = get_det()
 
 
-pprint(initial)
-pprint(final)
+print(initial)
+print(final)
