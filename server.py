@@ -22,8 +22,9 @@ def confirm_code_get():
 
 @app.post('/confirm-code')
 def confirm_code_post():
+    email = request.form["email"]
     code = request.form["code"]
-    if code_checker(code):
+    if code_checker(email,code):
         return render_template('change-password.html')
     return render_template("confirm.html", error = 'Code is not valid')
 
