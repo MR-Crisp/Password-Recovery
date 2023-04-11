@@ -19,10 +19,8 @@ def conect():
 def user_exist(email):
     """
     Checks if a user with the given email address exists in the database.
-
     Args:
         email (str): Email address of the user.
-
     Returns:
         bool: True if a user with the given email address exists in the database, False otherwise.
     """
@@ -42,6 +40,8 @@ def code_gen(email):
         return False
     code = token_urlsafe(32)
     cur.execute("UPDATE TBL_users SET code =? WHERE email =?", (code, email))
+    con = sqlite3.connect("userdetails.db", check_same_thread=False)
+    con.commit()
     return True
 
 
@@ -59,38 +59,31 @@ def code_checker(email, user_input):  # compares the codes to a user inputed cod
         return False
 
 
-def pass_changer(email):
+def pass_changer(email,password):
     """
     Prompts the user to input a new password and if it meets the password requirements,
     hashes and updates the user's password in the database.
-
     Args:
         email (str): Email address of the user.
-
     Returns:
         None
     """
     cur = conect()
-
-    password = getpass("enter your password")
     while not pass_req(password):
         print("you did not meet req")
         password = getpass("enter your password")
     password = str(hash(password))
-    cur.execute("UPDATE TBL_users SET password =? WHERE email =?", (password, email))
+    SQL_Query = "UPDATE TBL_users SET password ="+"'"+password+"'"+" WHERE email ="+"'"+email+"'"
+    cur.execute(SQL_Query)
     con = sqlite3.connect("userdetails.db", check_same_thread=False)
-
     con.commit()
-    print("password changed")
-
+    return True
 
 def hash(password):
     """
     Generates a salted hash of the given password using the `bcrypt` library.
-
     Args:
         password (str): A plain-text password.
-
     Returns:
         str: A salted hash of the given password.
     """
@@ -108,10 +101,8 @@ def pass_req(
 def get_det():
     """
     Returns all rows in the "TBL_users" table.
-
     Args:
         None
-
     Returns:
         list: A list of tuples, where each tuple represents a row in the "TBL_users" table.
     """
@@ -121,4 +112,3 @@ def get_det():
     return cur.fetchall()
 
 
-val = code_gen("aka.amin2005@gmail.com", "auwgiuawgiuw")
